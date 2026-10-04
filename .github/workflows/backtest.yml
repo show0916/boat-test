@@ -16,7 +16,8 @@ jobs:
 
       - name: Build backtest CSV
         run: |
-          python3 backtest_2026.py
+         mkdir -p data
+         python3 backtest_2026.py
 
       - name: Commit generated data
         run: |
