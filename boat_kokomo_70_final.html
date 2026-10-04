@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>競艇ココモ検証・70%版 最終</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f6f8;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+main{max-width:760px;margin:auto;padding:16px}
+h1{font-size:24px;margin:0 0 6px}
+h2,h3{margin:0 0 10px}
+.muted{color:#667085;font-size:13px;line-height:1.55}
+.card{background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:15px;margin:11px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.metric{background:#f8fafc;border-radius:12px;padding:11px}
+.metric small{display:block;color:#667085;font-size:11px}
+.metric b{font-size:19px}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 6px}
+input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px;font-size:16px;background:#fff}
+button{width:100%;border:0;border-radius:11px;padding:12px;margin-top:10px;font-weight:800;font-size:16px;background:#111827;color:#fff}
+button.secondary{background:#eef2f6;color:#17202a}
+.status{padding:10px;border-radius:10px;background:#f8fafc;font-size:13px;line-height:1.6;margin-top:10px}
+.ok{font-weight:800}
+.warn{font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:8px 4px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+.scroll{overflow-x:auto}
+code{background:#f2f4f7;padding:2px 5px;border-radius:5px}
+@media(min-width:600px){.metrics{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<main>
+<h1>競艇ココモ検証ツール</h1>
+<p class="muted">最終版：イン逃げ率70%以上 × 2連単1番人気 × 2連単オッズ3.0倍以上。条件成立レースだけを対象に、100→100→200→300→500→800円の資金管理を検証します。</p>
+
+<section class="card">
+<h3>検証条件</h3>
+<div class="grid">
+<div>
+<label>イン逃げ率（最低）</label>
+<input id="escape" type="number" value="70" min="0" max="100" step="1">
+</div>
+<div>
+<label>最低オッズ</label>
+<input id="minOdds" type="number" value="3.0" min="1" step="0.1">
+</div>
+</div>
+<label>CSVファイル</label>
+<input id="file" type="file" accept=".csv,text/csv">
+<button onclick="runFile()">CSVを読み込んで検証</button>
+<button class="secondary" onclick="runDemo()">試験データで動作確認</button>
+</section>
+
+<section class="card">
+<h3>検証結果</h3>
+<div class="grid">
+<div class="metric"><small>条件成立</small><b id="n">—</b></div>
+<div class="metric"><small>的中</small><b id="h">—</b></div>
+<div class="metric"><small>的中率</small><b id="hr">—</b></div>
+<div class="metric"><small>総投資</small><b id="s">—</b></div>
+<div class="metric"><small>払戻</small><b id="p">—</b></div>
+<div class="metric"><small>収支</small><b id="pl">—</b></div>
+<div class="metric"><small>回収率</small><b id="rr">—</b></div>
+<div class="metric"><small>6連敗リセット</small><b id="six">—</b></div>
+</div>
+<div id="status" class="status">CSVを選ぶか、試験データで動作確認してください。</div>
+</section>
+
+<section class="card">
+<h3>対象レース</h3>
+<div class="scroll">
+<table>
+<thead><tr><th>場/R</th><th>逃げ率</th><th>2連単1番人気</th><th>オッズ</th><th>結果</th><th>投資</th><th>払戻</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+</section>
+
+<section class="card">
+<h3>CSV形式</h3>
+<p class="muted">
+1行目を次の列名にしてください：<br>
+<code>place,race,escape_rate,popular,odds,hit</code><br><br>
+例：<br>
+<code>三国,1,72,1-2,3.2,1</code><br>
+<code>三国,2,68,1-2,3.5,0</code><br><br>
+<code>hit</code> は的中なら <code>1</code>、外れなら <code>0</code>。<br>
+払戻金は「100円購入時の払戻額」ではなく、オッズから計算します。
+</p>
+</section>
+
+<section class="card">
+<h3>重要な注意</h3>
+<p class="muted">
+このブラウザ版は、競艇日和の過去ページを直接自動取得する機能は入れていません。
+競艇日和側のデータ取得方式が変わった場合や、ブラウザのCORS制約によって自動取得できないためです。
+その代わり、条件判定・資金管理・的中率・回収率・収支はこのページだけで再現できます。
+実データをCSVにすれば、同じ条件で大量検証できます。
+</p>
+</section>
+</main>
+
+<script>
+const amounts=[100,100,200,300,500,800];
+
+function setText(id,v){document.getElementById(id).textContent=v;}
+
+function resetView(){
+  ["n","h","hr","s","p","pl","rr","six"].forEach(id=>setText(id,"—"));
+  document.getElementById("rows").innerHTML="";
+}
+
+function parseCSV(text){
+  text=text.replace(/^\uFEFF/,"").trim();
+  const lines=text.split(/\r?\n/).filter(x=>x.trim());
+  if(!lines.length) throw new Error("CSVが空です。");
+  const header=lines[0].split(",").map(x=>x.trim().toLowerCase());
+  const required=["place","race","escape_rate","popular","odds","hit"];
+  for(const k of required){
+    if(!header.includes(k)) throw new Error("必要な列がありません: "+k);
+  }
+  const idx=Object.fromEntries(header.map((x,i)=>[x,i]));
+  return lines.slice(1).map(line=>{
+    const a=line.split(",").map(x=>x.trim());
+    return {
+      place:a[idx.place]||"",
+      race:a[idx.race]||"",
+      escape_rate:Number(a[idx.escape_rate]),
+      popular:a[idx.popular]||"",
+      odds:Number(a[idx.odds]),
+      hit:/^(1|true|的中|win)$/i.test(a[idx.hit]||"")
+    };
+  });
+}
+
+function run(rows,source){
+  resetView();
+  const minEscape=Number(document.getElementById("escape").value);
+  const minOdds=Number(document.getElementById("minOdds").value);
+
+  const candidates=rows.filter(x=>
+    Number.isFinite(x.escape_rate) &&
+    Number.isFinite(x.odds) &&
+    x.escape_rate>=minEscape &&
+    /^1-/.test(String(x.popular)) &&
+    x.odds>=minOdds
+  );
+
+  let betIndex=0,total=0,payout=0,hits=0,loss=0,six=0;
+  let body="";
+
+  for(const x of candidates){
+    const bet=amounts[betIndex];
+    const win=!!x.hit;
+    const pay=win?Math.round(bet*x.odds):0;
+
+    total+=bet;
+    payout+=pay;
+    if(win){
+      hits++;
+      betIndex=0;
+      loss=0;
+    }else{
+      loss++;
+      if(loss>=6){
+        six++;
+        betIndex=0;
+        loss=0;
+      }else{
+        betIndex=Math.min(betIndex+1,amounts.length-1);
+      }
+    }
+
+    body+=`<tr>
+      <td>${escapeHtml(x.place)}${escapeHtml(String(x.race))}R</td>
+      <td>${x.escape_rate.toFixed(1)}%</td>
+      <td>${escapeHtml(x.popular)}</td>
+      <td>${x.odds.toFixed(1)}倍</td>
+      <td>${win?"的中":"外れ"}</td>
+      <td>${bet.toLocaleString()}円</td>
+      <td>${pay.toLocaleString()}円</td>
+    </tr>`;
+  }
+
+  setText("n",candidates.length+"R");
+  setText("h",hits+"R");
+  setText("hr",candidates.length?(hits/candidates.length*100).toFixed(1)+"%":"0.0%");
+  setText("s",total.toLocaleString()+"円");
+  setText("p",payout.toLocaleString()+"円");
+  setText("pl",(payout-total>=0?"+":"")+ (payout-total).toLocaleString()+"円");
+  setText("rr",total?(payout/total*100).toFixed(1)+"%":"0.0%");
+  setText("six",six+"回");
+  document.getElementById("rows").innerHTML=body || "<tr><td colspan='7'>条件成立レースなし</td></tr>";
+
+  const msg=source+"："+candidates.length+"Rが条件成立。";
+  document.getElementById("status").textContent=msg;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+async function runFile(){
+  try{
+    const f=document.getElementById("file").files[0];
+    if(!f){alert("CSVファイルを選択してください。");return;}
+    const text=await f.text();
+    run(parseCSV(text),"CSV検証");
+  }catch(e){
+    document.getElementById("status").textContent="エラー："+e.message;
+  }
+}
+
+function runDemo(){
+  const d=[
+    ["三国",1,72,"1-2",3.2,1],
+    ["三国",2,68,"1-2",3.5,0],
+    ["三国",5,74,"1-3",3.1,1],
+    ["多摩川",5,69,"1-2",3.8,1],
+    ["多摩川",7,75,"1-2",3.7,0],
+    ["多摩川",11,73,"1-2",3.7,1],
+    ["三国",11,71,"1-3",3.1,1],
+    ["戸田",12,66,"1-2",3.3,1],
+    ["若松",8,76,"2-1",4.2,1]
+  ];
+  run(d.map(x=>({place:x[0],race:x[1],escape_rate:x[2],popular:x[3],odds:x[4],hit:!!x[5]})),"試験データ");
+}
+</script>
+</body>
+</html>
