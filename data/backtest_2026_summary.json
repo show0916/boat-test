@@ -1,0 +1,8 @@
+{
+  "target_start": "2026-01-01",
+  "target_end": "2026-10-04",
+  "history_start": "2025-11-01",
+  "qualifying_rows": 0,
+  "history_complete_1y_rows": 0,
+  "note": "2026-01-01〜2026-04-30は1年履歴不足。2026-05-01以降のみ365日履歴を満たす。"
+}
