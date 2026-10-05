@@ -248,10 +248,10 @@ summary = {
         "history_complete_1y_rows": sum(int(x["history_complete_1y"]) for x in final),
         "note": "2026-01-01〜2026-04-30は1年履歴不足。2026-05-01以降のみ365日履歴を満たす。",
     }
-    with open("data/backtest_2026_summary.json", "w", encoding="utf-8") as f:
+with open("data/backtest_2026_summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
-    print(json.dumps(summary, ensure_ascii=False, indent=2))
+print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
     main()
