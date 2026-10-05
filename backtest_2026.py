@@ -217,7 +217,7 @@ print("DEBUG out:", len(out))
     # 5) 共通条件を満たす行だけ出力。
     #    ここでは現行アプリと同じくescape_rate>=70を使う。
 final = []
-    for r in out:
+for r in out:
         try:
             er = float(r["escape_rate"])
         except (TypeError, ValueError):
