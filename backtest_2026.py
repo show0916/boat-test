@@ -131,7 +131,7 @@ def main():
             # 両方の率が70%以上なら common_70=1 とする。
             # 現在のツールは escape_rate を70%以上で見るので、
             # escape_rate は共通条件の低い方を採用。
-            common_rate = min(rate365, rate183) if rate365 is not None and rate183 is not None else None
+            common_rate = rate183
             history_days = (rd - HISTORY_START).days
             candidates.append({
                 "race_code": r.get("レースコード", ""),
