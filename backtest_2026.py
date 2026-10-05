@@ -225,22 +225,22 @@ for r in out:
         if er >= 70:
             final.append(r)
 
-    print("DEBUG final:", len(final))
-    final.sort(key=lambda x: (x["date"], x["place"], x["race"]))
+print("DEBUG final:", len(final))
+final.sort(key=lambda x: (x["date"], x["place"], x["race"]))
 
-    outpath = "data/backtest_2026.csv"
-    fields = [
+outpath = "data/backtest_2026.csv"
+fields = [
         "place","race","date","player","escape_rate","escape_rate_1y",
         "escape_rate_6m","history_complete_1y","popular","odds",
         "actual","hit","payout","race_code"
     ]
-    with open(outpath, "w", newline="", encoding="utf-8-sig") as f:
+with open(outpath, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         w.writerows(final)
 
-    # サマリー
-    summary = {
+# サマリー
+summary = {
         "target_start": str(TARGET_START),
         "target_end": str(TARGET_END),
         "history_start": str(HISTORY_START),
