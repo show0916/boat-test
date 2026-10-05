@@ -23,12 +23,9 @@ def get_bytes(url, retries=3):
             with urlopen(req, timeout=30) as r:
                 return r.read()
         except (HTTPError, URLError, TimeoutError) as e:
-
-    if i == retries - 1:
-
-        print("DOWNLOAD FAILED:", url, e)
-
-        return None
+            if i == retries - 1:
+                print("DOWNLOAD FAILED:", url, e)
+                return None
             
         
             time.sleep(1.5 * (i + 1))
