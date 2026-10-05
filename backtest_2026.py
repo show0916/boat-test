@@ -91,7 +91,7 @@ def main():
     # 2) 各レースを時系列に並べ、事前の逃率を計算しながら
     #    2026年の対象レース情報を作る。
     all_results = sorted(results_by_code.values(), key=race_sort_key)
-
+    print("DEBUG all_results:", len(all_results))
     # 出力候補を一旦保存
     candidates = []
 
@@ -149,6 +149,8 @@ def main():
 
         # このレースを履歴に追加（未来レースからの情報漏洩を防ぐため最後に追加）
         q.append((rd, 1, int(is_escape(r))))
+       
+    print("DEBUG candidates:", len(candidates))
 
     # 3) 対象期間のod2を取得し、1番人気(最低オッズ)を決定。
     print("Downloading 2026 odds...")
@@ -161,7 +163,7 @@ def main():
                 target_odds[code] = r
         if d.day == 1 or d.weekday() == 6:
             print(" odds", d)
-
+    print("DEBUG target_odds:", len(target_odds))
     # 4) 結果とオッズを結合してアプリ用CSVを作る。
     out = []
     for c in candidates:
@@ -211,6 +213,7 @@ def main():
             "race_code": code,
         })
 
+print("DEBUG out:", len(out))
     # 5) 共通条件を満たす行だけ出力。
     #    ここでは現行アプリと同じくescape_rate>=70を使う。
     final = []
@@ -222,6 +225,7 @@ def main():
         if er >= 70:
             final.append(r)
 
+    print("DEBUG final:", len(final))
     final.sort(key=lambda x: (x["date"], x["place"], x["race"]))
 
     outpath = "data/backtest_2026.csv"
