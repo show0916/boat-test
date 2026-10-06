@@ -213,11 +213,11 @@ def main():
             "race_code": code,
         })
 
-print("DEBUG out:", len(out))
+　　　　print("DEBUG out:", len(out))
     # 5) 共通条件を満たす行だけ出力。
     #    ここでは現行アプリと同じくescape_rate>=70を使う。
-final = []
-for r in out:
+　　　　final = []
+　　　　for r in out:
         try:
             er = float(r["escape_rate"])
         except (TypeError, ValueError):
@@ -225,22 +225,22 @@ for r in out:
         if er >= 70:
             final.append(r)
 
-print("DEBUG final:", len(final))
-final.sort(key=lambda x: (x["date"], x["place"], x["race"]))
+　　　　print("DEBUG final:", len(final))
+　　　　final.sort(key=lambda x: (x["date"], x["place"], x["race"]))
 
-outpath = "data/backtest_2026.csv"
-fields = [
+　　　　outpath = "data/backtest_2026.csv"
+　　　　fields = [
         "place","race","date","player","escape_rate","escape_rate_1y",
         "escape_rate_6m","history_complete_1y","popular","odds",
         "actual","hit","payout","race_code"
     ]
-with open(outpath, "w", newline="", encoding="utf-8-sig") as f:
+　　　　with open(outpath, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         w.writerows(final)
 
 # サマリー
-summary = {
+　　　　summary = {
         "target_start": str(TARGET_START),
         "target_end": str(TARGET_END),
         "history_start": str(HISTORY_START),
@@ -248,10 +248,10 @@ summary = {
         "history_complete_1y_rows": sum(int(x["history_complete_1y"]) for x in final),
         "note": "2026-01-01〜2026-04-30は1年履歴不足。2026-05-01以降のみ365日履歴を満たす。",
     }
-with open("data/backtest_2026_summary.json", "w", encoding="utf-8") as f:
+　　　　with open("data/backtest_2026_summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
-print(json.dumps(summary, ensure_ascii=False, indent=2))
+　　　　print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
     main()
